@@ -1,6 +1,10 @@
-def main():
-    print("Hello from user-service!")
+from fastapi import FastAPI
+from app.api.v1.router import router as v1_router
 
+app = FastAPI(title="Auth Service")
 
-if __name__ == "__main__":
-    main()
+app.include_router(v1_router, prefix="/api/v1")
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
