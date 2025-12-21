@@ -8,15 +8,17 @@ from app.core.config import settings
 import os
 
 config = context.config
-DATABASE_URL = os.getenv('DATABASE_URL')
 
-sync_database_url = DATABASE_URL.replace(
+# Setup logging
+if config.config_file_name is not None:
+    fileConfig(config.config_file_name)
+
+sync_database_url = settings.DATABASE_URL.replace(
     "postgresql+asyncpg://",
     "postgresql+psycopg://",
 )
 
 config.set_main_option("sqlalchemy.url", sync_database_url)
-
 
 engine = engine_from_config(
     config.get_section(config.config_ini_section),

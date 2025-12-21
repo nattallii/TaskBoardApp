@@ -1,7 +1,5 @@
 version: "3.9"
-
 services:
-  # auth
   auth_db:
     image: postgres:16
     environment:
@@ -16,9 +14,10 @@ services:
       timeout: 5s
       retries: 5
 
-
   auth_service:
     build: ./services/auth_service
+    volumes:
+      - ./services/auth_service:/app
     env_file:
       - ./services/auth_service/.env
     depends_on:
@@ -26,12 +25,12 @@ services:
         condition: service_healthy
     ports:
       - "8001:8000"
+
     command: >
       sh -c "
-      uv run alembic upgrade head &&
-      uv run uvicorn app.main:app --host 0.0.0.0 --port 8000
-      "
-  
+      alembic upgrade head &&
+      uvicorn app.main:app --host 0.0.0.0 --port 8000
+      "  
 
   # user
 #  user_db:
