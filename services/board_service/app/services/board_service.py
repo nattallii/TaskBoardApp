@@ -1,57 +1,80 @@
-from sqlalchemy.orm import Session
-from typing import List, Optional
-from app.db.models.board import Board
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select, func
+from sqlalchemy.orm import selectinload
+
+from app.models.board import Board
 from app.schemas.board import BoardCreate, BoardUpdate
 
+
 class BoardService:
+
     @staticmethod
-    def get_boards(db: Session, skip: int = 0, limit: int = 100, owner_id: Optional[int] = None):
-        query = db.query(Board)
-        
-        if owner_id:
-            query = query.filter(Board.owner_id == owner_id)
-        
-        total = query.count()
-        boards = query.offset(skip).limit(limit).all()
-        
-        return boards, total
-    
-    @staticmethod
-    def get_board_by_id(db: Session, board_id: int):
-        return db.query(Board).filter(Board.id == board_id).first()
-    
-    @staticmethod
-    def create_board(db: Session, board: BoardCreate, owner_id: int):
-        db_board = Board(
-            title=board.title,
-            description=board.description,
-            owner_id=owner_id
+    async def get_board_by_id(db: AsyncSession, board_id: int):
+        stmt = (
+            select(Board)
+            .options(selectinload(Board.columns))
+            .where(Board.id == board_id)
         )
+
+        result = await db.execute(stmt)
+        return result.scalar_one_or_none()
+
+    @staticmethod
+    async def get_boards(
+        db: AsyncSession,
+        skip: int,
+        limit: int,
+        owner_id: int | None
+    ):
+        stmt = select(Board).options(selectinload(Board.columns))
+
+        if owner_id:
+            stmt = stmt.where(Board.owner_id == owner_id)
+
+        total_stmt = select(func.count()).select_from(stmt.subquery())
+        total = await db.scalar(total_stmt)
+
+        result = await db.execute(
+            stmt.offset(skip).limit(limit)
+        )
+        return result.scalars().all(), total
+
+    @staticmethod
+    async def create_board(
+        db: AsyncSession,
+        board: BoardCreate,
+        owner_id: int
+    ):
+        db_board = Board(**board.model_dump(), owner_id=owner_id)
         db.add(db_board)
-        db.commit()
-        db.refresh(db_board)
+        await db.commit()
+
+        await db.refresh(db_board)
         return db_board
-    
+
     @staticmethod
-    def update_board(db: Session, board_id: int, board_update: BoardUpdate):
-        db_board = db.query(Board).filter(Board.id == board_id).first()
-        if not db_board:
+    async def update_board(
+        db: AsyncSession,
+        board_id: int,
+        board_update: BoardUpdate
+    ):
+        board = await BoardService.get_board_by_id(db, board_id)
+        if not board:
             return None
-        
-        update_data = board_update.model_dump(exclude_unset=True)
-        for field, value in update_data.items():
-            setattr(db_board, field, value)
-        
-        db.commit()
-        db.refresh(db_board)
-        return db_board
-    
+
+        for k, v in board_update.model_dump(exclude_unset=True).items():
+            setattr(board, k, v)
+
+        await db.commit()
+        await db.refresh(board)
+        return board
+
     @staticmethod
-    def delete_board(db: Session, board_id: int):
-        db_board = db.query(Board).filter(Board.id == board_id).first()
-        if not db_board:
+    async def delete_board(db: AsyncSession, board_id: int):
+        board = await BoardService.get_board_by_id(db, board_id)
+        if not board:
             return False
-        
-        db.delete(db_board)
-        db.commit()
+
+        await db.delete(board)
+        await db.commit()
         return True

@@ -47,10 +47,10 @@ services:
 #      timeout: 5s
 #      retries: 5
 #
-#  user_service:
-#    build: ./services/user_service
+#  profile_service:
+#    build: ./services/profile_service
 #    env_file:
-#      - ./services/user_service/.env
+#      - ./services/profile_service/.env
 #    depends_on:
 #      user_db:
 #        condition: service_healthy

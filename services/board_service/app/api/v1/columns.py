@@ -1,52 +1,55 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
-from ...core.database import get_db
-from ...schemas.column import ColumnCreate, ColumnUpdate, ColumnResponse
-from ...services.column_service import ColumnService
-from ...services.board_service import BoardService
+
+from app.db.session import get_db
+from app.schemas.column import ColumnCreate, ColumnUpdate, ColumnResponse
+from app.services.column_service import ColumnService
+from app.services.board_service import BoardService
 
 router = APIRouter()
 
 @router.get("/board/{board_id}", response_model=List[ColumnResponse])
-def get_board_columns(board_id: int, db: Session = Depends(get_db)):
-    # Перевірка чи існує дошка
-    board = BoardService.get_board_by_id(db, board_id)
+async def get_board_columns(board_id: int, db: AsyncSession = Depends(get_db)):
+    board = await BoardService.get_board_by_id(db, board_id)
     if not board:
         raise HTTPException(status_code=404, detail="Board not found")
-    
-    return ColumnService.get_columns_by_board(db, board_id)
+
+    return await ColumnService.get_columns_by_board(db, board_id)
 
 @router.post("/", response_model=ColumnResponse, status_code=status.HTTP_201_CREATED)
-def create_column(column: ColumnCreate, db: Session = Depends(get_db)):
-    # Перевірка чи існує дошка
-    board = BoardService.get_board_by_id(db, column.board_id)
+async def create_column(column: ColumnCreate, db: AsyncSession = Depends(get_db)):
+    board = await BoardService.get_board_by_id(db, column.board_id)
     if not board:
         raise HTTPException(status_code=404, detail="Board not found")
-    
-    return ColumnService.create_column(db, column)
+
+    return await ColumnService.create_column(db, column)
 
 @router.put("/{column_id}", response_model=ColumnResponse)
-def update_column(column_id: int, column_update: ColumnUpdate, db: Session = Depends(get_db)):
-    updated_column = ColumnService.update_column(db, column_id, column_update)
-    if not updated_column:
+async def update_column(
+    column_id: int,
+    column_update: ColumnUpdate,
+    db: AsyncSession = Depends(get_db),
+):
+    column = await ColumnService.update_column(db, column_id, column_update)
+    if not column:
         raise HTTPException(status_code=404, detail="Column not found")
-    return updated_column
+    return column
 
 @router.delete("/{column_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_column(column_id: int, db: Session = Depends(get_db)):
-    success = ColumnService.delete_column(db, column_id)
+async def delete_column(column_id: int, db: AsyncSession = Depends(get_db)):
+    success = await ColumnService.delete_column(db, column_id)
     if not success:
         raise HTTPException(status_code=404, detail="Column not found")
 
 @router.post("/board/{board_id}/reorder")
-def reorder_columns(board_id: int, column_order: List[int], db: Session = Depends(get_db)):
-    # Перевірка чи існує дошка
-    board = BoardService.get_board_by_id(db, board_id)
+async def reorder_columns(board_id: int, column_order: List[int], db: AsyncSession = Depends(get_db)):
+    board = await BoardService.get_board_by_id(db, board_id)
     if not board:
         raise HTTPException(status_code=404, detail="Board not found")
-    
-    success = ColumnService.reorder_columns(db, board_id, column_order)
+
+    success = await ColumnService.reorder_columns(db, board_id, column_order)
     if not success:
         raise HTTPException(status_code=400, detail="Failed to reorder columns")
+
     return {"message": "Columns reordered successfully"}
