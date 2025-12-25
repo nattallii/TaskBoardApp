@@ -4,7 +4,7 @@
 
 Build and start everything
 
-`docker compose up --build`
+`docker compose up -d --build  `
 
 2️. Open FastAPI docs
 http://localhost:8001/docs

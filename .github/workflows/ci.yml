@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  docker-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build and start services
+        run: docker compose up -d --build
+
+      - name: Shutdown
+        run: sleep 15
+
+      - name: Show container status
+        run: docker ps
+
+      - name: Stop services
+        if: always()
+        run: docker compose down
+
+
+
