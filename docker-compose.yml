@@ -32,35 +32,38 @@ services:
       uvicorn app.main:app --host 0.0.0.0 --port 8000
       "  
 
-  # user
-#  user_db:
-#    image: postgres:16
-#    environment:
-#      POSTGRES_DB: userdb
-#      POSTGRES_USER: useruser
-#      POSTGRES_PASSWORD: userpass
-#    volumes:
-#      - user_db_data:/var/lib/postgresql/data
-#    healthcheck:
-#      test: ["CMD-SHELL", "pg_isready -U useruser"]
-#      interval: 5s
-#      timeout: 5s
-#      retries: 5
-#
-#  profile_service:
-#    build: ./services/profile_service
-#    env_file:
-#      - ./services/profile_service/.env
-#    depends_on:
-#      user_db:
-#        condition: service_healthy
-#    ports:
-#      - "8002:8000"
-#    command: >
-#      sh -c "
-#      alembic upgrade head &&
-#      uvicorn app.main:app --host 0.0.0.0 --port 8000
-#      "
+  # profiles
+  profile_db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: profiledb
+      POSTGRES_USER: profileuser
+      POSTGRES_PASSWORD: profilepass
+    volumes:
+      - profile_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U profileuser -d profiledb" ]
+
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  profile_service:
+    build: ./services/profile_service
+    volumes:
+      - ./services/profile_service:/app
+    env_file:
+      - ./services/profile_service/.env
+    depends_on:
+      profile_db:
+        condition: service_healthy
+    ports:
+      - "8002:8000"
+    command: >
+      sh -c "
+      alembic upgrade head &&
+      uvicorn app.main:app --host 0.0.0.0 --port 8000
+      "
 
   # board
 #  board_db:
@@ -92,7 +95,18 @@ services:
 #      uvicorn app.main:app --host 0.0.0.0 --port 8000
 #      "
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+
 volumes:
+  rabbitmq_data:
   auth_db_data:
-#  user_db_data:
+  profile_db_data:
 #  board_db_data:
+

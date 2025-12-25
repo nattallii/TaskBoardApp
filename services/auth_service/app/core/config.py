@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_DAY: int = 7
 
-    RABBIT_URL: str
+    RABBITMQ_URL: str
 
     class Config:
         env_file = ".env"
