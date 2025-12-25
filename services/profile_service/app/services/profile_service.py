@@ -1,7 +1,5 @@
-from fastapi import Depends, HTTPException, status, Query
-from sqlalchemy import select
+from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Optional
 from app.db.session import get_db
 from app.schemas.profile import ProfileCreate, ProfileOut, ProfileBase, ProfileUpdate
 from app.services import profile_service

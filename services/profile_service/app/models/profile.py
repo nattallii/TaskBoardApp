@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import String, DateTime, func, Column
+from sqlalchemy import String, DateTime, func
 
 from app.db.base import Base
 
