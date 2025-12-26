@@ -5,19 +5,35 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y \ gcc \ libpq-dev \ && rm -rf /var/lib/apt/lists/*
+# Встановлюємо системні залежності
+RUN apt-get update && apt-get install -y \
+    gcc \
+    libpq-dev \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
 
+# Встановлюємо uv (сучасний менеджер пакетів Python)
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-COPY pyproject.toml uv.lock ./
+# Копіюємо файли залежностей
+COPY pyproject.toml uv.lock* ./
 
-RUN uv pip install --system --frozen
+# Встановлюємо Python залежності
+RUN uv pip install --system . && \
+    uv pip install --system asyncpg
 
+# Копіюємо код додатку
 COPY app ./app
-# Optional (only for services with DB migrations)
-# COPY alembic ./alembic
-# COPY alembic.ini .
+COPY alembic ./alembic
+COPY alembic.ini .
 
-EXPOSE 8002
+# Копіюємо скрипт для запуску
+COPY entrypoint.sh .
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8002"]
+# Робимо скрипт виконуваним
+RUN chmod +x entrypoint.sh
+
+EXPOSE 8000
+
+# Використовуємо entrypoint для запуску міграцій та сервера
+ENTRYPOINT ["/app/entrypoint.sh"]

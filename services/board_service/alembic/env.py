@@ -1,58 +1,50 @@
 from logging.config import fileConfig
-
-from sqlalchemy import engine_from_config, pool
+from sqlalchemy import create_engine, pool
 from alembic import context
+import os
+import sys
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.core.config import settings
 from app.db.base import Base
-
-from app.models import board, column, task
-
 
 config = context.config
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-sync_db_url = settings.DATABASE_URL.replace(
-    "postgresql+asyncpg://",
-    "postgresql+psycopg://"
-)
-
-config.set_main_option("sqlalchemy.url", sync_db_url)
+# Безпосередньо створюємо синхронний двигун для Alembic
+def get_sync_engine():
+    """Створює синхронний двигун для міграцій"""
+    sync_url = settings.DATABASE_URL.replace("+asyncpg", "")
+    return create_engine(sync_url, poolclass=pool.NullPool)
 
 target_metadata = Base.metadata
 
-
-def run_migrations_offline() -> None:
-    url = config.get_main_option("sqlalchemy.url")
+def run_migrations_offline():
+    url = settings.DATABASE_URL.replace("+asyncpg", "")
     context.configure(
         url=url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
     )
-
     with context.begin_transaction():
         context.run_migrations()
 
-
-def run_migrations_online() -> None:
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
-
-    with connectable.connect() as connection:
+def run_migrations_online():
+    """Пряме підключення до бази для міграцій"""
+    sync_url = settings.DATABASE_URL.replace("+asyncpg", "")
+    engine = create_engine(sync_url, poolclass=pool.NullPool)
+    
+    with engine.connect() as connection:
         context.configure(
             connection=connection,
-            target_metadata=target_metadata,
+            target_metadata=target_metadata
         )
-
         with context.begin_transaction():
             context.run_migrations()
-
 
 if context.is_offline_mode():
     run_migrations_offline()

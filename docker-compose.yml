@@ -1,5 +1,6 @@
 version: "3.9"
 services:
+  # Auth Service (вже є)
   auth_db:
     image: postgres:16
     environment:
@@ -25,74 +26,43 @@ services:
         condition: service_healthy
     ports:
       - "8001:8000"
-
     command: >
       sh -c "
       alembic upgrade head &&
       uvicorn app.main:app --host 0.0.0.0 --port 8000
-      "  
+      "
 
-  # user
-#  user_db:
-#    image: postgres:16
-#    environment:
-#      POSTGRES_DB: userdb
-#      POSTGRES_USER: useruser
-#      POSTGRES_PASSWORD: userpass
-#    volumes:
-#      - user_db_data:/var/lib/postgresql/data
-#    healthcheck:
-#      test: ["CMD-SHELL", "pg_isready -U useruser"]
-#      interval: 5s
-#      timeout: 5s
-#      retries: 5
-#
-#  profile_service:
-#    build: ./services/profile_service
-#    env_file:
-#      - ./services/profile_service/.env
-#    depends_on:
-#      user_db:
-#        condition: service_healthy
-#    ports:
-#      - "8002:8000"
-#    command: >
-#      sh -c "
-#      alembic upgrade head &&
-#      uvicorn app.main:app --host 0.0.0.0 --port 8000
-#      "
+  # Board Service - ДОДАЄМО
+  board_db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: boarddb
+      POSTGRES_USER: boarduser
+      POSTGRES_PASSWORD: boardpass
+    volumes:
+      - board_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U boarduser -d boarddb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-  # board
-#  board_db:
-#    image: postgres:16
-#    environment:
-#      POSTGRES_DB: boarddb
-#      POSTGRES_USER: boarduser
-#      POSTGRES_PASSWORD: boardpass
-#    volumes:
-#      - board_db_data:/var/lib/postgresql/data
-#    healthcheck:
-#      test: ["CMD-SHELL", "pg_isready -U boarduser"]
-#      interval: 5s
-#      timeout: 5s
-#      retries: 5
-#
-#  board_service:
-#    build: ./services/board_service
-#    env_file:
-#      - ./services/board_service/.env
-#    depends_on:
-#      board_db:
-#        condition: service_healthy
-#    ports:
-#      - "8003:8000"
-#    command: >
-#      sh -c "
-#      alembic upgrade head &&
-#      uvicorn app.main:app --host 0.0.0.0 --port 8000
-#      "
-
+  board_service:
+    build: ./services/board_service
+    volumes:
+      - ./services/board_service:/app
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://boarduser:boardpass@board_db:5432/boarddb
+      - PROJECT_NAME=Board Service
+      - SECRET_KEY=your-secret-key-change-in-production
+      - ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+    depends_on:
+      board_db:
+        condition: service_healthy
+    ports:
+      - "8003:8000"
+    # Видаляємо command, бо тепер використовуємо ENTRYPOINT
 volumes:
   auth_db_data:
-#  user_db_data:
-#  board_db_data:
+  board_db_data:
