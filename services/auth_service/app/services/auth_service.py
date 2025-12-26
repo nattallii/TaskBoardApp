@@ -6,6 +6,8 @@ from app.models.auth import User
 from app.core.security import verify_password, hash_password
 from app.core.jwt import create_access_token, create_refresh_token
 
+from app.services.events import publish_profile_create_event
+
 
 async def login_user(
     db: AsyncSession,
@@ -30,12 +32,7 @@ async def login_user(
     }
 
 
-async def register_user(
-    db: AsyncSession,
-    username: str,
-    email: str,
-    password: str,
-) -> dict:
+async def register_user(db: AsyncSession, username: str, email: str, password: str,) -> dict:
     result = await db.execute(
         select(User).where(User.email == email)
     )
@@ -57,8 +54,18 @@ async def register_user(
     await db.commit()
     await db.refresh(user)
 
+    try:
+        await publish_profile_create_event(
+            user_id=user.id,
+            username=user.username,
+            bio=None,
+        )
+    except Exception as e:
+        print(f"RabbitMQ error: {e}")
+
     return {
-        "access_token": create_access_token(user.id),
-        "refresh_token": create_refresh_token(user.id),
-        "token_type": "bearer",
+        "message": "User registered successfully",
+        "id": user.id,
+        "email": user.email,
+        "username": user.username,
     }

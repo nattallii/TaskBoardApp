@@ -22,3 +22,8 @@ dependencies = [
     "psycopg[binary]>=3.3.2",
     "aio-pika>=9.5.8",
 ]
+
+[dependency-groups]
+dev = [
+    "pylint>=4.0.4",
+]

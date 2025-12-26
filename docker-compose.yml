@@ -1,6 +1,6 @@
 version: "3.9"
 services:
-  # Auth Service (вже є)
+  # Auth Service
   auth_db:
     image: postgres:16
     environment:
@@ -20,7 +20,7 @@ services:
     volumes:
       - ./services/auth_service:/app
     env_file:
-      - ./services/auth_service/.env
+      - ./services/auth_service/.env.example
     depends_on:
       auth_db:
         condition: service_healthy
@@ -32,7 +32,39 @@ services:
       uvicorn app.main:app --host 0.0.0.0 --port 8000
       "
 
-  # Board Service - ДОДАЄМО
+  # Profile Service
+  profile_db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: profiledb
+      POSTGRES_USER: profileuser
+      POSTGRES_PASSWORD: profilepass
+    volumes:
+      - profile_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U profileuser -d profiledb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  profile_service:
+    build: ./services/profile_service
+    volumes:
+      - ./services/profile_service:/app
+    env_file:
+      - ./services/profile_service/.env.example
+    depends_on:
+      profile_db:
+        condition: service_healthy
+    ports:
+      - "8002:8000"
+    command: >
+      sh -c "
+      alembic upgrade head &&
+      uvicorn app.main:app --host 0.0.0.0 --port 8000
+      "
+
+  # Board Service
   board_db:
     image: postgres:16
     environment:
@@ -62,7 +94,25 @@ services:
         condition: service_healthy
     ports:
       - "8003:8000"
-    # Видаляємо command, бо тепер використовуємо ENTRYPOINT
+    # Видаляємо command, бо використовуємо ENTRYPOINT в Dockerfile
+
+  # RabbitMQ для повідомлень між сервісами
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - 5672:5672   # AMQP порт
+      - 15672:15672 # Web UI порт
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
 volumes:
+  rabbitmq_data:
   auth_db_data:
+  profile_db_data:
   board_db_data:

@@ -19,3 +19,8 @@ dependencies = [
     "uvicorn>=0.38.0",
     "aio-pika>=9.5.8",
 ]
+
+[dependency-groups]
+dev = [
+    "pylint>=4.0.4",
+]
