@@ -1,4 +1,3 @@
-version: "3.9"
 services:
   # Auth Service
   auth_db:
@@ -24,6 +23,9 @@ services:
     depends_on:
       auth_db:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
     ports:
       - "8001:8000"
     command: >
@@ -68,7 +70,7 @@ services:
   board_db:
     image: postgres:16
     environment:
-      POSTGRES_DB: boarddb
+      POSTGRES_DB: taskboarddb
       POSTGRES_USER: boarduser
       POSTGRES_PASSWORD: boardpass
     volumes:
@@ -83,26 +85,29 @@ services:
     build: ./services/board_service
     volumes:
       - ./services/board_service:/app
-    environment:
-      - DATABASE_URL=postgresql+asyncpg://boarduser:boardpass@board_db:5432/boarddb
-      - PROJECT_NAME=Board Service
-      - SECRET_KEY=your-secret-key-change-in-production
-      - ALGORITHM=HS256
-      - ACCESS_TOKEN_EXPIRE_MINUTES=30
+    env_file:
+      - ./services/board_service/.env.example
+
     depends_on:
       board_db:
         condition: service_healthy
     ports:
       - "8003:8000"
-    # Видаляємо command, бо використовуємо ENTRYPOINT в Dockerfile
 
-  # RabbitMQ для повідомлень між сервісами
+    command: >
+      sh -c "
+      alembic upgrade head &&
+      uvicorn app.main:app --host 0.0.0.0 --port 8000
+      "
+
+
+
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq
     ports:
-      - 5672:5672   # AMQP порт
-      - 15672:15672 # Web UI порт
+      - 5672:5672
+      - 15672:15672
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:

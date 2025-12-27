@@ -64,8 +64,7 @@ async def register_user(db: AsyncSession, username: str, email: str, password: s
         print(f"RabbitMQ error: {e}")
 
     return {
-        "message": "User registered successfully",
-        "id": user.id,
-        "email": user.email,
-        "username": user.username,
+        "access_token": create_access_token(user.id),
+        "refresh_token": create_refresh_token(user.id),
+        "token_type": "bearer",
     }

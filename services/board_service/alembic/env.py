@@ -1,50 +1,53 @@
 from logging.config import fileConfig
+
 from sqlalchemy import create_engine, pool
 from alembic import context
-import os
-import sys
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
+from app.models.board import Base
 from app.core.config import settings
-from app.db.base import Base
 
 config = context.config
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Безпосередньо створюємо синхронний двигун для Alembic
-def get_sync_engine():
-    """Створює синхронний двигун для міграцій"""
-    sync_url = settings.DATABASE_URL.replace("+asyncpg", "")
-    return create_engine(sync_url, poolclass=pool.NullPool)
-
 target_metadata = Base.metadata
 
+
 def run_migrations_offline():
-    url = settings.DATABASE_URL.replace("+asyncpg", "")
+    url = settings.DATABASE_URL.replace(
+        "postgresql+asyncpg",
+        "postgresql+psycopg2",
+    )
+
     context.configure(
         url=url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
     )
+
     with context.begin_transaction():
         context.run_migrations()
 
+
 def run_migrations_online():
-    """Пряме підключення до бази для міграцій"""
-    sync_url = settings.DATABASE_URL.replace("+asyncpg", "")
+    sync_url = settings.DATABASE_URL.replace(
+        "postgresql+asyncpg",
+        "postgresql+psycopg2",
+    )
+
     engine = create_engine(sync_url, poolclass=pool.NullPool)
-    
+
     with engine.connect() as connection:
         context.configure(
             connection=connection,
-            target_metadata=target_metadata
+            target_metadata=target_metadata,
         )
+
         with context.begin_transaction():
             context.run_migrations()
+
 
 if context.is_offline_mode():
     run_migrations_offline()

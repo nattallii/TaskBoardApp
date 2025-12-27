@@ -7,7 +7,7 @@ from app.api.v1 import boards, columns, tasks
 import asyncpg  
 
 
-app = FastAPI(title=settings.PROJECT_NAME)
+app = FastAPI(title='board service',)
 
 # Налаштування CORS
 app.add_middleware(

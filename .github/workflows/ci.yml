@@ -32,6 +32,9 @@ jobs:
           uv sync
           uv run pylint app --fail-under=1.0
 
+      #- name: unit tests
+       # run: run pytest
+
 
   docker-test:
     runs-on: ubuntu-latest
