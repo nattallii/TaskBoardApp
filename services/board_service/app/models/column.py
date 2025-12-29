@@ -11,4 +11,4 @@ class Column(Base):
     board_id = Column(Integer, ForeignKey("boards.id", ondelete="CASCADE"))
     
     board = relationship("Board", back_populates="columns")
-    tasks = relationship("Task", back_populates="column", cascade="all, delete-orphan", order_by="Task.position")
+    tasks = relationship("Task", back_populates="column", cascade="all, delete-orphan", order_by="Task.position", lazy="selectin")
