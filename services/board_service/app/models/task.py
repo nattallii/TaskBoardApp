@@ -15,4 +15,4 @@ class Task(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
-    column = relationship("Column", back_populates="tasks")
+    column = relationship("Column", back_populates="tasks", lazy="selectin")
