@@ -18,7 +18,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Підключаємо роутери
+
 app.include_router(boards.router, prefix="/api/v1/boards", tags=["boards"])
 app.include_router(columns.router, prefix="/api/v1/columns", tags=["columns"])
 app.include_router(tasks.router, prefix="/api/v1/tasks", tags=["tasks"])

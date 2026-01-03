@@ -11,12 +11,21 @@ class TaskCreate(TaskBase):
     column_id: int
     assignee_id: Optional[int] = None
 
+class AssignTask(BaseModel):
+    assignee_id: Optional[int] = None
+
 class TaskUpdate(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
     position: Optional[int] = None
     column_id: Optional[int] = None
     assignee_id: Optional[int] = None
+
+
+class MoveTask(TaskBase):
+    column_id: int
+    task_position: int
+
 
 class TaskResponse(TaskBase):
     model_config = ConfigDict(from_attributes=True)
