@@ -92,4 +92,3 @@ jobs:
           push: true
           tags: |
             natalii571/${{ matrix.service.name }}:latest
-            natalii571/$
