@@ -49,8 +49,7 @@ class BoardService:
         db.add(db_board)
         await db.commit()
 
-        await db.refresh(db_board)
-        return db_board
+        return await BoardService.get_board_by_id(db, db_board.id)
 
     @staticmethod
     async def update_board(
@@ -66,8 +65,7 @@ class BoardService:
             setattr(board, k, v)
 
         await db.commit()
-        await db.refresh(board)
-        return board
+        return await BoardService.get_board_by_id(db, board.id)
 
     @staticmethod
     async def delete_board(db: AsyncSession, board_id: int):
