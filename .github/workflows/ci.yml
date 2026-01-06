@@ -54,7 +54,7 @@ jobs:
       - name: Run pip-audit (${{ matrix.service }})
         run: |
           cd services/${{ matrix.service }}
-          uv export --format requirements-txt --output requirements.txt
+          uv export --format requirements-txt --output-file requirements.txt
           pip-audit -r requirements.txt
 
   unit-tests:
