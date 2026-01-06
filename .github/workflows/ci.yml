@@ -32,9 +32,36 @@ jobs:
           uv sync
           uv run pylint app --fail-under=1.0
 
-  unit-tests:
+  security-scan:
     runs-on: ubuntu-latest
     needs: pylint-test
+    strategy:
+      matrix:
+        service: [auth_service, board_service, profile_service]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install tooling
+        run: pip install uv pip-audit
+
+      - name: Run pip-audit (${{ matrix.service }})
+        run: |
+          cd services/${{ matrix.service }}
+          uv export --format requirements-txt --output requirements.txt
+          pip-audit -r requirements.txt
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    needs:
+      - pylint-test
+      - security-scan
     strategy:
       matrix:
         service: [auth_service, board_service, profile_service]
