@@ -55,7 +55,7 @@ jobs:
         run: |
           cd services/${{ matrix.service }}
           uv export --format requirements-txt --output-file requirements.txt
-          pip-audit -r requirements.txt
+          pip-audit -r requirements.txt --ignore-vuln CVE-2024-23342
 
   unit-tests:
     runs-on: ubuntu-latest

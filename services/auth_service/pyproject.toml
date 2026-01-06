@@ -2,7 +2,7 @@
 name = "auth-service"
 version = "0.1.0"
 description = "Authentication service"
-requires-python = ">=3.13"
+requires-python = ">=3.13,<3.14"
 
 dependencies = [
     "fastapi>=0.125.0",
@@ -13,6 +13,7 @@ dependencies = [
     "pydantic[email]>=2.12.5",
     "pydantic-settings>=2.12.0",
     "python-jose[cryptography]>=3.5.0",
+    "ecdsa>=0.19.2",
     "passlib[argon2,bcrypt]>=1.7.4",
     "argon2-cffi>=25.1.0",
     "python-multipart>=0.0.21",
