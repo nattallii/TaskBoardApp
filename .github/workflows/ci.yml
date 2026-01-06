@@ -55,15 +55,7 @@ jobs:
         run: |
           cd services/${{ matrix.service }}
           uv export --format requirements-txt --output-file requirements.txt
-          IGNORE_FLAGS=""
-          if [ "${{ matrix.service }}" = "auth_service" ]; then
-            IGNORE_FLAGS="--ignore-vuln CVE-2024-23342"
-          elif [ "${{ matrix.service }}" = "board_service" ]; then
-            IGNORE_FLAGS="--ignore-vuln CVE-2024-23342 --ignore-vuln CVE-2025-54121 --ignore-vuln CVE-2025-62727"
-          elif [ "${{ matrix.service }}" = "profile_service" ]; then
-            IGNORE_FLAGS="--ignore-vuln CVE-2024-23342"
-          fi
-          pip-audit -r requirements.txt $IGNORE_FLAGS
+          pip-audit -r requirements.txt
 
   unit-tests:
     runs-on: ubuntu-latest
