@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta, timezone
-from jose import jwt, JWTError
+import jwt
+from jwt import PyJWTError
 from fastapi import HTTPException, status
 
 from app.core.config import settings
@@ -31,7 +32,7 @@ def decode_token(token: str) -> int:
             algorithms=[settings.JWT_ALG],
         )
         return int(payload["sub"])
-    except JWTError:
+    except PyJWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired token",

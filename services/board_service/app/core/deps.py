@@ -1,4 +1,5 @@
-from jose import jwt, JWTError
+import jwt
+from jwt import PyJWTError
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 
@@ -19,7 +20,7 @@ def get_current_user_id(token: str = Depends(oauth2_scheme)) -> int:
         if user_id is None:
             raise HTTPException(status_code=401, detail="Invalid token")
         return int(user_id)
-    except JWTError:
+    except PyJWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token",
