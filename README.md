@@ -76,3 +76,8 @@ Verify installation:
 - helm upgrade profile ./k8s/profile-service --install
 - helm upgrade board ./k8s/board-service --install
 - kubectl get nodes
+
+## 🐞 Troubleshooting
+- kubectl logs -l app=auth
+- kubectl logs -l app=profile
+- kubectl logs -l app=board
