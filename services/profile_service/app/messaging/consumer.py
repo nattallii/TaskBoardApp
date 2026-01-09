@@ -6,14 +6,14 @@ from app.db.session import AsyncSessionLocal
 from app.services.profile_service import create_profile_if_not_exists
 from app.schemas.profile import ProfileCreate
 
-RABBIT_URL = "amqp://guest:guest@rabbitmq/"
+RABBITMQ_URL="amqp://myuser:mypassword@rabbitmq:5672/"
 
 async def consume_profiles():
     print("Profile consumer started")
 
     while True:
         try:
-            connection = await aio_pika.connect_robust(RABBIT_URL)
+            connection = await aio_pika.connect_robust(RABBITMQ_URL)
             channel = await connection.channel()
 
             queue = await channel.declare_queue(

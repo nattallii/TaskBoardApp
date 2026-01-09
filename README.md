@@ -50,3 +50,34 @@ check if user creates
 
 ## Stop Containers
 `docker compose down`
+
+## Local Kubernetes setup хз чи працює
+
+### Requirements
+
+#### Install the following tools locally:
+
+- Docker Desktop
+- kubectl
+- Minikube
+- Helm
+- (optional) PostgreSQL client (psql)
+
+Verify installation:
+
+- docker version
+- kubectl version --client
+- minikube version
+- helm version
+
+## startup
+- minikube start
+- helm upgrade auth ./k8s/auth-service --install
+- helm upgrade profile ./k8s/profile-service --install
+- helm upgrade board ./k8s/board-service --install
+- kubectl get nodes
+
+## 🐞 Troubleshooting
+- kubectl logs -l app=auth
+- kubectl logs -l app=profile
+- kubectl logs -l app=board

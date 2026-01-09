@@ -1,0 +1,40 @@
+replicaCount: 2
+
+image:
+  repository: natalii571/profile-service
+  pullPolicy: Always
+  tag: latest
+
+service:
+  type: ClusterIP
+  port: 8000
+
+ingress:
+  enabled: false
+
+env:
+  JWT_ALG: HS256
+  JWT_SECRET: supersecret
+  ACCESS_TOKEN_EXPIRE_MINUTES: "15"
+  REFRESH_TOKEN_EXPIRE_DAYS: "7"
+
+
+database:
+  host: profile-db
+  port: 5432
+  name: profiledb
+  user: profileuser
+  password: profilepass
+
+
+db:
+  auth:
+    username: profileuser
+    password: profilepass
+    database: profiledb
+  persistence:
+    size: 5Gi
+
+rabbitmq:
+  url: amqp://myuser:mypassword@rabbitmq:5672/
+

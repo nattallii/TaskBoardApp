@@ -15,3 +15,17 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Profile Service", lifespan=lifespan)
 
 app.include_router(profile_router, prefix='/api/v1')
+
+
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
+
+@app.get("/health/live")
+def live():
+    return {"status": "ok"}
+
+@app.get("/health/ready")
+def ready():
+    return {"status": "ready"}

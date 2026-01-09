@@ -70,7 +70,7 @@ services:
   board_db:
     image: postgres:16
     environment:
-      POSTGRES_DB: taskboarddb
+      POSTGRES_DB: boarddb
       POSTGRES_USER: boarduser
       POSTGRES_PASSWORD: boardpass
     volumes:
@@ -104,12 +104,12 @@ services:
 
   rabbitmq:
     image: rabbitmq:3-management
-    container_name: rabbitmq
-    ports:
-      - 5672:5672
-      - 15672:15672
+    environment:
+      RABBITMQ_DEFAULT_USER: myuser
+      RABBITMQ_DEFAULT_PASS: mypassword
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
       interval: 30s
