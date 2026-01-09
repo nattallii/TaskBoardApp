@@ -19,3 +19,11 @@ app.include_router(v1_router, prefix="/api/v1")
 def health():
     return {"status": "ok"}
 
+
+@app.get("/health/live")
+def live():
+    return {"status": "ok"}
+
+@app.get("/health/ready")
+def ready():
+    return {"status": "ready"}

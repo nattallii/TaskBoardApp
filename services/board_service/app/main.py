@@ -9,7 +9,6 @@ import asyncpg
 
 app = FastAPI(title='board service',)
 
-# Налаштування CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -28,5 +27,14 @@ def read_root():
     return {"message": "TaskBoard Kanban Service is running"}
 
 @app.get("/health")
-def health_check():
-    return {"status": "healthy"}
+def health():
+    return {"status": "ok"}
+
+
+@app.get("/health/live")
+def live():
+    return {"status": "ok"}
+
+@app.get("/health/ready")
+def ready():
+    return {"status": "ready"}
