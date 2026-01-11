@@ -1,6 +1,0 @@
-apiVersion: v2
-name: db
-description: PostgreSQL database
-type: application
-version: 0.1.0
-appVersion: "15"

@@ -1,7 +1,0 @@
-database:
-  host: auth-db
-  name: authdb
-  user: authuser
-  password: authpass
-  port: 5432
-  storage: 5Gi

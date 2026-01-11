@@ -1,0 +1,29 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "profile.fullname" . }}-migrate
+#  annotations:
+#    "helm.sh/hook": post-install
+ #   "helm.sh/hook-delete-policy": hook-succeeded
+
+
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+
+#spec:
+#  backoffLimit: 3
+#  ttlSecondsAfterFinished: 600
+#  template:
+#    spec:
+#      restartPolicy: OnFailure
+      containers:
+        - name: migrate
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["alembic", "upgrade", "head"]
+          envFrom:
+            - secretRef:
+                name: {{ include "profile.fullname" . }}-secrets

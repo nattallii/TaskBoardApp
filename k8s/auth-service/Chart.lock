@@ -1,9 +1,0 @@
-dependencies:
-- name: db
-  repository: file://charts/db
-  version: 0.1.0
-- name: rabbitmq
-  repository: https://charts.bitnami.com/bitnami
-  version: 14.7.0
-digest: sha256:60bb751cc2f96fa731bbb174e0e5a5a4aea7278be5edb30d30e77274d207e4ab
-generated: "2026-01-10T23:31:36.0048603+02:00"
