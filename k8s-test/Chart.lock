@@ -1,0 +1,12 @@
+dependencies:
+- name: auth-service
+  repository: file://charts/auth-service
+  version: 0.1.0
+- name: board-service
+  repository: file://charts/board-service
+  version: 0.1.0
+- name: profile-service
+  repository: file://charts/profile-service
+  version: 0.1.0
+digest: sha256:a0a87102e685efc7e800c405efa87aa731f9ddf6b427db51ea9b4662d45bf61b
+generated: "2026-01-11T16:00:15.7147342+02:00"

@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "db.fullname" . }}
+spec:
+  clusterIP: None
+  selector:
+    app: {{ include "db.fullname" . }}
+  ports:
+    - port: 5432
+      targetPort: 5432

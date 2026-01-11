@@ -26,7 +26,8 @@ spec:
 
 
             - name: RABBITMQ_URL
-              value: amqp://myuser:mypassword@rabbitmq:5672/
+              value: "amqp://{{ .Values.global.rabbitmq.username }}:{{ .Values.global.rabbitmq.password }}@{{ .Values.global.rabbitmq.host }}:{{ .Values.global.rabbitmq.port }}/"
+
 
 
             - name: JWT_ALG

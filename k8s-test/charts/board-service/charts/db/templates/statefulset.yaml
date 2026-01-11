@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "db.fullname" . }}
+spec:
+  serviceName: {{ include "db.fullname" . }}
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "db.fullname" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "db.fullname" . }}
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15-alpine
+          imagePullPolicy: IfNotPresent
+
+          ports:
+            - containerPort: 5432
+
+          envFrom:
+            - secretRef:
+                name: {{ include "db.fullname" . }}-secret
+
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: {{ .Values.persistence.size }}

@@ -1,0 +1,10 @@
+service:
+  type: ClusterIP
+
+database:
+  host: board-db
+  name: boarddb
+  user: boarduser
+  password: boardpass
+  port: 5432
+  storage: 5Gi

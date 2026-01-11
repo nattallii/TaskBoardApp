@@ -27,6 +27,7 @@ database:
 
 
 db:
+  fullnameOverride: auth-db
   auth:
     username: authuser
     password: authpass
@@ -34,8 +35,8 @@ db:
   persistence:
     size: 5Gi
 
-rabbitmq:
-  image:
-    registry: registry.bitnami.com
-    repository: rabbitmq
-    tag: 3.12.12
+#rabbitmq:
+#  image:
+#    registry: registry.bitnami.com
+#    repository: rabbitmq
+#    tag: 3.12.12
