@@ -1,0 +1,16 @@
+rabbitmq:
+  enabled: true
+
+  auth:
+    username: myuser
+    password: mypassword
+
+  persistence:
+    enabled: false
+
+global:
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+    username: myuser
+    password: mypassword

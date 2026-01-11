@@ -1,0 +1,13 @@
+apiVersion: v2
+name: auth-service
+description: Helm chart for FastAPI auth service
+type: application
+
+version: 0.1.0
+appVersion: "1.0.0"
+
+dependencies:
+  - name: db
+    version: 0.1.0
+    repository: "file://charts/db"
+

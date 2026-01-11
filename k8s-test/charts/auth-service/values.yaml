@@ -1,0 +1,42 @@
+replicaCount: 2
+
+image:
+  repository: natalii571/auth-service
+  tag: latest
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 8000
+
+ingress:
+  enabled: false
+
+env:
+  JWT_ALG: HS256
+  JWT_SECRET: supersecret
+  ACCESS_TOKEN_EXPIRE_MINUTES: "15"
+  REFRESH_TOKEN_EXPIRE_DAYS: "7"
+
+database:
+  host: auth-db
+  port: 5432
+  name: authdb
+  user: authuser
+  password: authpass
+
+
+db:
+  fullnameOverride: auth-db
+  auth:
+    username: authuser
+    password: authpass
+    database: authdb
+  persistence:
+    size: 5Gi
+
+#rabbitmq:
+#  image:
+#    registry: registry.bitnami.com
+#    repository: rabbitmq
+#    tag: 3.12.12

@@ -256,39 +256,16 @@ Verify installation:
 `minikube start`
 #### Deploy services using Helm
 
-- helm upgrade auth ./k8s/auth-service --install
-- helm upgrade profile ./k8s/profile-service --install
-- helm upgrade board ./k8s/board-service --install
+- cd k8s
+- helm dependency update
+- helm install k8s-test .
+
 ####  Verify deployment
 ```
 kubectl get nodes
 kubectl get pods
 kubectl get svc
 ```
-
-### Port Forwarding 
-When running the project in Kubernetes (Minikube), services are exposed inside the cluster and are not accessible directly from localhost by default.
-
-To access a service locally (for example, to open FastAPI Swagger UI), you can use kubectl port-forward.
-
-**Port Forward a Service**
-
-Forward a Kubernetes service port to your local machine:
-```
-kubectl port-forward pod/<pod-name> 8001:8000
-```
-
-**Common Service Ports**
-```
-
-| Service          | Local Port | Container Port |
-|------------------|------------|----------------|
-| Auth Service     | 8001       | 8000           |
-| Profile Service  | 8002       | 8000           |
-| Board Service    | 8003       | 8000           |
-
-```
-
 #### Additional useful commands:
 ```
 helm list
