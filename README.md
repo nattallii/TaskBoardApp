@@ -266,6 +266,13 @@ kubectl get nodes
 kubectl get pods
 kubectl get svc
 ```
+
+### Check API locally
+- `kubectl port-forward pod/<pod name> 8001:8000 `
+- `kubectl port-forward pod/<pod name> 8002:8000 `
+- `kubectl port-forward pod/<pod name> 8003:8000 `
+
+
 #### Additional useful commands:
 ```
 helm list
