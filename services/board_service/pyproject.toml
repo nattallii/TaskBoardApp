@@ -19,6 +19,7 @@ dependencies = [
     "pyjwt>=2.10.1",
     "sqlalchemy==2.0.37",
     "uvicorn[standard]==0.34.0",
+    "prometheus-fastapi-instrumentator>=7.1.0",
 ]
 
 [dependency-groups]

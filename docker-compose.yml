@@ -1,7 +1,8 @@
 services:
-  # Auth Service
+  # ==================== AUTH SERVICE ====================
   auth_db:
     image: postgres:16
+    container_name: auth_db
     environment:
       POSTGRES_DB: authdb
       POSTGRES_USER: authuser
@@ -13,9 +14,12 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - app-network
 
   auth_service:
     build: ./services/auth_service
+    container_name: auth_service
     volumes:
       - ./services/auth_service:/app
     env_file:
@@ -25,7 +29,6 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
-
     ports:
       - "8001:8000"
     command: >
@@ -33,10 +36,19 @@ services:
       alembic upgrade head &&
       uvicorn app.main:app --host 0.0.0.0 --port 8000
       "
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://host.docker.internal:3100/loki/api/v1/push"
+        loki-external-labels: "job=docker-auth,service=auth_service"
+        loki-retries: "3"
+    networks:
+      - app-network
 
-  # Profile Service
+  # ==================== PROFILE SERVICE ====================
   profile_db:
     image: postgres:16
+    container_name: profile_db
     environment:
       POSTGRES_DB: profiledb
       POSTGRES_USER: profileuser
@@ -48,9 +60,12 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - app-network
 
   profile_service:
     build: ./services/profile_service
+    container_name: profile_service
     volumes:
       - ./services/profile_service:/app
     env_file:
@@ -65,10 +80,19 @@ services:
       alembic upgrade head &&
       uvicorn app.main:app --host 0.0.0.0 --port 8000
       "
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://host.docker.internal:3100/loki/api/v1/push"
+        loki-external-labels: "job=docker-profile,service=profile_service"
+        loki-retries: "3"
+    networks:
+      - app-network
 
-  # Board Service
+  # ==================== BOARD SERVICE ====================
   board_db:
     image: postgres:16
+    container_name: board_db
     environment:
       POSTGRES_DB: boarddb
       POSTGRES_USER: boarduser
@@ -80,44 +104,86 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - app-network
 
   board_service:
     build: ./services/board_service
+    container_name: board_service
     volumes:
       - ./services/board_service:/app
     env_file:
       - ./services/board_service/.env.example
-
     depends_on:
       board_db:
         condition: service_healthy
     ports:
       - "8003:8000"
-
     command: >
       sh -c "
       alembic upgrade head &&
       uvicorn app.main:app --host 0.0.0.0 --port 8000
       "
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://host.docker.internal:3100/loki/api/v1/push"
+        loki-external-labels: "job=docker-board,service=board_service"
+        loki-retries: "3"
+    networks:
+      - app-network
 
-
-
+  # ==================== RABBITMQ ====================
   rabbitmq:
     image: rabbitmq:3-management
+    container_name: rabbitmq
     environment:
       RABBITMQ_DEFAULT_USER: myuser
       RABBITMQ_DEFAULT_PASS: mypassword
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
-
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
       interval: 30s
       timeout: 10s
       retries: 3
+    ports:
+      - "15672:15672"
+    networks:
+      - app-network
+
+  # ==================== LOKI (локальний) ====================
+  loki:
+    image: grafana/loki:2.9.0
+    container_name: loki
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+    networks:
+      - app-network
+
+  # ==================== GRAFANA (локальна) ====================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - loki
+    networks:
+      - app-network
 
 volumes:
   rabbitmq_data:
   auth_db_data:
   profile_db_data:
   board_db_data:
+  grafana_data:
+
+networks:
+  app-network:
+    driver: bridge

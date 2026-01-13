@@ -4,6 +4,9 @@ from contextlib import asynccontextmanager, suppress
 import asyncio
 from app.messaging.consumer import consume_profiles
 
+from prometheus_fastapi_instrumentator import Instrumentator  # Додати цей імпорт
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     task = asyncio.create_task(consume_profiles())
@@ -12,15 +15,15 @@ async def lifespan(app: FastAPI):
     with suppress(asyncio.CancelledError):
         await task
 
-app = FastAPI(title="Profile Service", lifespan=lifespan, root_path='/profile')
+app = FastAPI(title="Profile Service", lifespan=lifespan)
+
+Instrumentator().instrument(app).expose(app)  # Додати ці два рядки
 
 app.include_router(profile_router, prefix='/api/v1')
-
 
 @app.get("/health")
 def health():
     return {"status": "ok"}
-
 
 @app.get("/health/live")
 def live():

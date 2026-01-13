@@ -22,6 +22,7 @@ dependencies = [
     "loguru>=0.7.3",
     "psycopg[binary]>=3.3.2",
     "aio-pika>=9.5.8",
+    "prometheus-fastapi-instrumentator>=7.1.0",
 ]
 
 [dependency-groups]

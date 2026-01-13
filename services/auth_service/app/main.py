@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from app.api.v1.router import router as v1_router
 from app.messaging.rabbitmq import rabbitmq
 
+from prometheus_fastapi_instrumentator import Instrumentator 
 
 
 @asynccontextmanager
@@ -12,6 +13,9 @@ async def lifespan(app: FastAPI):
     yield
     await rabbitmq.close()
 app = FastAPI(title="Auth Service", lifespan=lifespan, root_path='/auth')
+
+Instrumentator().instrument(app).expose(app)  # Додати ці два рядки
+
 
 app.include_router(v1_router, prefix="/api/v1")
 

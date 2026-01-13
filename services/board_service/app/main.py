@@ -6,8 +6,12 @@ from app.db.session import engine
 from app.api.v1 import boards, columns, tasks
 import asyncpg  
 
+from prometheus_fastapi_instrumentator import Instrumentator  # Додати цей імпорт
 
-app = FastAPI(title='board service', root_path='/board')
+
+app = FastAPI(title='board service',)
+
+Instrumentator().instrument(app).expose(app)  # Додати ці два рядки
 
 app.add_middleware(
     CORSMiddleware,
@@ -16,7 +20,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 
 app.include_router(boards.router, prefix="/api/v1/boards", tags=["boards"])
 app.include_router(columns.router, prefix="/api/v1/columns", tags=["columns"])
@@ -29,7 +32,6 @@ def read_root():
 @app.get("/health")
 def health():
     return {"status": "ok"}
-
 
 @app.get("/health/live")
 def live():
