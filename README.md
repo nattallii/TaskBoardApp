@@ -284,6 +284,45 @@ kubectl describe pod <pod-name>
 kubectl logs <pod-name>
 ```
 
+### Frontend + Ingress (Minikube)
+
+This project uses a global NGINX Ingress to expose backend services.
+
+When running the project locally with **Minikube**, the Ingress controller
+is exposed via a `LoadBalancer` service.
+
+⚠️ Minikube does not provide a real cloud LoadBalancer.
+To make Ingress accessible on `http://localhost`, you must run:
+
+```bash
+minikube tunnel
+```
+Keep this command running in a separate terminal while using the frontend.
+
+Without minikube tunnel, the frontend will not be able to reach the backend
+through Ingress.
+
+**Example requests**
+```commandline
+POST http://localhost/auth/api/v1/auth/login
+GET http://localhost/profile/api/v1/profile/me
+POST http://localhost/board/api/v1/boards
+```
+### Important: API path prefixes ⚠️
+
+All backend services are exposed behind Ingress path prefixes.
+
+This means that every frontend request MUST include the correct prefix.
+Requests without the prefix will return 404 Not Found.
+
+The prefix is defined by:
+
+the Ingress path (/auth, /profile, /board)
+
+API versioning inside the service (/api/v1/...)
+
+Use exact paths as shown in Swagger UI.
+
 ****
 ### 📌 Note
 

@@ -1,4 +1,7 @@
 dependencies:
+- name: ingress-nginx
+  repository: https://kubernetes.github.io/ingress-nginx
+  version: 4.10.1
 - name: auth-service
   repository: file://charts/auth-service
   version: 0.1.0
@@ -8,5 +11,5 @@ dependencies:
 - name: profile-service
   repository: file://charts/profile-service
   version: 0.1.0
-digest: sha256:a0a87102e685efc7e800c405efa87aa731f9ddf6b427db51ea9b4662d45bf61b
-generated: "2026-01-11T16:00:15.7147342+02:00"
+digest: sha256:a8b9d1a9ca96647ef621a56d2a01dcdb8695c8f397f4cc0adb3b1f2ffc9c488d
+generated: "2026-01-13T16:29:31.6214076+02:00"

@@ -11,7 +11,7 @@ async def lifespan(app: FastAPI):
     await rabbitmq.connect()
     yield
     await rabbitmq.close()
-app = FastAPI(title="Auth Service", lifespan=lifespan)
+app = FastAPI(title="Auth Service", lifespan=lifespan, root_path='/auth')
 
 app.include_router(v1_router, prefix="/api/v1")
 

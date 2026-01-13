@@ -7,7 +7,7 @@ from app.api.v1 import boards, columns, tasks
 import asyncpg  
 
 
-app = FastAPI(title='board service',)
+app = FastAPI(title='board service', root_path='/board')
 
 app.add_middleware(
     CORSMiddleware,

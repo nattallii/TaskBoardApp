@@ -5,6 +5,8 @@ metadata:
 
 spec:
   type: {{ .Values.service.type }}
+  selector:
+    app: {{ include "auth.name" . }}
   ports:
     - port: {{ .Values.service.port }}
       targetPort: 8000

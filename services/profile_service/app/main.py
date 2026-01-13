@@ -12,7 +12,7 @@ async def lifespan(app: FastAPI):
     with suppress(asyncio.CancelledError):
         await task
 
-app = FastAPI(title="Profile Service", lifespan=lifespan)
+app = FastAPI(title="Profile Service", lifespan=lifespan, root_path='/profile')
 
 app.include_router(profile_router, prefix='/api/v1')
 
