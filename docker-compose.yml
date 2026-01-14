@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   # ==================== AUTH SERVICE ====================
   auth_db:
@@ -22,6 +24,8 @@ services:
     container_name: auth_service
     volumes:
       - ./services/auth_service:/app
+      - /var/run/docker.sock:/var/run/docker.sock  # Для Promtail
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro  # Для збору логів
     env_file:
       - ./services/auth_service/.env.example
     depends_on:
@@ -36,12 +40,7 @@ services:
       alembic upgrade head &&
       uvicorn app.main:app --host 0.0.0.0 --port 8000
       "
-    logging:
-      driver: loki
-      options:
-        loki-url: "http://host.docker.internal:3100/loki/api/v1/push"
-        loki-external-labels: "job=docker-auth,service=auth_service"
-        loki-retries: "3"
+    # ВИДАЛИТИ секцію logging - тепер логі збирає Promtail
     networks:
       - app-network
 
@@ -68,6 +67,8 @@ services:
     container_name: profile_service
     volumes:
       - ./services/profile_service:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
     env_file:
       - ./services/profile_service/.env.example
     depends_on:
@@ -80,12 +81,6 @@ services:
       alembic upgrade head &&
       uvicorn app.main:app --host 0.0.0.0 --port 8000
       "
-    logging:
-      driver: loki
-      options:
-        loki-url: "http://host.docker.internal:3100/loki/api/v1/push"
-        loki-external-labels: "job=docker-profile,service=profile_service"
-        loki-retries: "3"
     networks:
       - app-network
 
@@ -112,6 +107,8 @@ services:
     container_name: board_service
     volumes:
       - ./services/board_service:/app
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
     env_file:
       - ./services/board_service/.env.example
     depends_on:
@@ -124,12 +121,6 @@ services:
       alembic upgrade head &&
       uvicorn app.main:app --host 0.0.0.0 --port 8000
       "
-    logging:
-      driver: loki
-      options:
-        loki-url: "http://host.docker.internal:3100/loki/api/v1/push"
-        loki-external-labels: "job=docker-board,service=board_service"
-        loki-retries: "3"
     networks:
       - app-network
 
@@ -142,6 +133,8 @@ services:
       RABBITMQ_DEFAULT_PASS: mypassword
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
     healthcheck:
       test: ["CMD", "rabbitmq-diagnostics", "ping"]
       interval: 30s
@@ -152,26 +145,46 @@ services:
     networks:
       - app-network
 
-  # ==================== LOKI (локальний) ====================
+  # ==================== LOKI ====================
   loki:
     image: grafana/loki:2.9.0
     container_name: loki
     command: -config.file=/etc/loki/local-config.yaml
     ports:
       - "3100:3100"
+    volumes:
+      - loki_data:/loki
+      - ./config/loki/loki-config.yaml:/etc/loki/local-config.yaml
     networks:
       - app-network
 
-  # ==================== GRAFANA (локальна) ====================
+  # ==================== PROMTAIL ====================
+  promtail:
+    image: grafana/promtail:2.9.0
+    container_name: promtail
+    command: -config.file=/etc/promtail/promtail-config.yaml
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ./config/promtail/promtail-config.yaml:/etc/promtail/promtail-config.yaml
+    depends_on:
+      - loki
+    networks:
+      - app-network
+
+  # ==================== GRAFANA ====================
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
     ports:
       - "3000:3000"
     volumes:
       - grafana_data:/var/lib/grafana
+      - ./config/grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./config/grafana/dashboards:/etc/grafana/provisioning/dashboards
     depends_on:
       - loki
     networks:
@@ -183,6 +196,7 @@ volumes:
   profile_db_data:
   board_db_data:
   grafana_data:
+  loki_data:
 
 networks:
   app-network:
