@@ -4,6 +4,24 @@ from sqlalchemy import select
 from app.models.task import Task
 from app.models.column import Column
 
+
+async def _get_tasks_by_column(session: AsyncSession, column_id: int):
+    result = await session.execute(
+        select(Task)
+        .where(Task.column_id == column_id)
+        .order_by(Task.position)
+    )
+    return list(result.scalars().all())
+
+
+def _clamp_position(position: int, max_length: int) -> int:
+    if position < 1:
+        return 1
+    if position > max_length:
+        return max_length
+    return position
+
+
 async def move_task(
     session: AsyncSession,
     task_id: int,
@@ -19,38 +37,35 @@ async def move_task(
     if task is None:
         raise HTTPException(status_code=404, detail="Task not found")
 
-
     column_result = await session.execute(select(Column).where(Column.id == to_column_id))
-    column = column_result.scalar_one_or_none()
+    target_column = column_result.scalar_one_or_none()
 
-    if column is None:
+    if target_column is None:
         raise HTTPException(status_code=404, detail="Column not found")
 
-
-    if column.board_id != task.column.board_id:
+    if target_column.board_id != task.column.board_id:
         raise HTTPException(status_code=400, detail="Column does not belong to the same board")
 
-    tasks_result = await session.execute(select(Task).where(Task.id == task_id))
-    tasks_in_column = tasks_result.scalars().all()
-    tasks_count = len(tasks_in_column)
+    source_column_id = task.column_id
 
-    if tasks_in_column is None:
-        raise HTTPException(status_code=404, detail="Task not found")
+    source_tasks = await _get_tasks_by_column(session, source_column_id)
+    target_tasks = source_tasks if source_column_id == to_column_id else await _get_tasks_by_column(session, to_column_id)
 
-    if task_position < 1:
-        task_position = 1
+    # Remove task from source ordering
+    source_tasks = [t for t in source_tasks if t.id != task.id]
+    for idx, t in enumerate(source_tasks, start=1):
+        t.position = idx
 
-    elif task_position > tasks_count + 1:
-        task_position = tasks_count + 1
+    if source_column_id == to_column_id:
+        target_tasks = source_tasks
 
-
-    for task in tasks_in_column:
-        if task.position >= task_position:
-            task.position += 1
-
+    insert_index = _clamp_position(task_position, len(target_tasks) + 1) - 1
+    target_tasks.insert(insert_index, task)
 
     task.column_id = to_column_id
-    task.position = task_position
+
+    for idx, t in enumerate(target_tasks, start=1):
+        t.position = idx
 
     await session.commit()
     await session.refresh(task)

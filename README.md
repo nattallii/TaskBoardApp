@@ -29,8 +29,12 @@ The application allows users to:
 |       ├──ci.yaml
 ├── services/
 |   ├── auth-service/
+|   │   ├── app/
+|   │   └── tests/              # pytest suites live next to each service
 |   ├── profile-service/
+|   │   └── tests/
 |   ├── board-service/
+|   │   └── tests/
 ├── k8s/
 │   ├── auth-service/
 │   ├── profile-service/
@@ -94,10 +98,9 @@ Enables event-driven architecture and decouples services.
 
 ### Testing
 
-**pytest** -
-Primary testing framework for unit and integration tests.
-
-
+- **pytest** — each microservice exposes its own `services/<name>/tests` package. CI runs the suites with coverage; locally you can mirror this via `uv sync --group dev && uv run pytest` (see [Running Tests Locally](#running-tests-locally)).
+- **Frontend lint/build** — the SPA reuses the same commands as CI: `npm run lint` and `npm run build`. Add `npm run test` once component/integration tests land. Instructions live in the [Frontend checks](#frontend-checks) section.
+- **Security scanning** — CI also executes `pip-audit` per service. You can reproduce it manually as documented in [Security Scanning](#security-scanning).
 
 ### CI/CD
 
@@ -184,6 +187,26 @@ This command will:
 - http://localhost:8003/docs - board service
 
 
+### One-command local launcher (backend + frontend)
+
+On Windows, run both backend services and the frontend dev server with:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/start-local.ps1
+```
+
+Optional flags:
+
+- `-SkipFrontendInstall` — avoid running `npm install` if `node_modules/` already exists.
+
+What the script does:
+
+1. Executes `docker compose up -d --build` from the repo root.
+2. Enters `frontend/`, installs deps if needed, then starts `npm run dev`.
+
+Stop the frontend with `Ctrl+C` and bring services down later via `docker compose down`.
+
+
 ### API Documentation
 FastAPI Swagger UI (Auth service):
 ```
@@ -231,6 +254,50 @@ SELECT * FROM users;
 ```
 docker compose down
 ```
+## Running Tests Locally
+
+Each backend service keeps its own virtual environment requirements. We rely on **uv** to install dev dependencies and run pytest. To execute the suites locally:
+
+1. Pick a service (auth/profile/board) and navigate into it, e.g.
+   ```bash
+   cd services/board_service
+   ```
+2. Install dependencies (including dev extras used in CI):
+   ```bash
+   uv sync --group dev
+   ```
+3. Run pytest:
+   ```bash
+   uv run pytest
+   ```
+   - The board service additionally collects coverage in CI. If you want identical output locally:
+     ```bash
+     uv run pytest --cov=app --cov-report=term-missing
+     ```
+
+### Frontend checks
+
+From `frontend/` run the same commands used in GitHub Actions:
+
+```bash
+npm ci          # first time only
+npm run lint
+npm run build
+```
+
+## Security Scanning
+
+Continuous Integration runs **pip-audit** for each backend service (see `.github/workflows/ci.yml`). You can reproduce it locally as follows:
+
+```bash
+cd services/<service_name>
+uv export --format requirements-txt --output-file requirements.txt
+pip install pip-audit
+pip-audit -r requirements.txt
+```
+
+This reports vulnerable dependencies before they get deployed. Feel free to run it pre-commit, especially when touching dependency files.
+
 ## Run Locally with Kubernetes (Minikube)
 ⚠️ Kubernetes setup is intended for local development and testing only.
 

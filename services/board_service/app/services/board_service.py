@@ -3,16 +3,24 @@ from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 
 from app.models.board import Board
+from app.models.column import Column
 from app.schemas.board import BoardCreate, BoardUpdate
 
 
 class BoardService:
+    DEFAULT_COLUMNS = [
+        "Todo",
+        "In Progress",
+        "Done",
+    ]
 
     @staticmethod
     async def get_board_by_id(db: AsyncSession, board_id: int):
         stmt = (
             select(Board)
-            .options(selectinload(Board.columns))
+            .options(
+                selectinload(Board.columns).selectinload(Column.tasks)
+            )
             .where(Board.id == board_id)
         )
 
@@ -26,7 +34,9 @@ class BoardService:
         limit: int,
         owner_id: int | None
     ):
-        stmt = select(Board).options(selectinload(Board.columns))
+        stmt = select(Board).options(
+            selectinload(Board.columns).selectinload(Column.tasks)
+        )
 
         if owner_id:
             stmt = stmt.where(Board.owner_id == owner_id)
@@ -47,6 +57,17 @@ class BoardService:
     ):
         db_board = Board(**board.model_dump(), owner_id=owner_id)
         db.add(db_board)
+        await db.commit()
+        await db.refresh(db_board)
+
+        for position, title in enumerate(BoardService.DEFAULT_COLUMNS, start=1):
+            default_column = Column(
+                title=title,
+                position=position,
+                board_id=db_board.id,
+            )
+            db.add(default_column)
+
         await db.commit()
 
         return await BoardService.get_board_by_id(db, db_board.id)

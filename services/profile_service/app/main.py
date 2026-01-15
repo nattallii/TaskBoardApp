@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1.router import router as profile_router
 from contextlib import asynccontextmanager, suppress
 import asyncio
@@ -13,6 +14,24 @@ async def lifespan(app: FastAPI):
         await task
 
 app = FastAPI(title="Profile Service", lifespan=lifespan, root_path='/profile')
+
+allowed_origins = [
+    "http://localhost:4173",
+    "http://localhost:4174",
+    "http://localhost:5173",
+    "http://127.0.0.1:4173",
+    "http://127.0.0.1:4174",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:64062",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allowed_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(profile_router, prefix='/api/v1')
 

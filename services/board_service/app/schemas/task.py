@@ -22,7 +22,7 @@ class TaskUpdate(BaseModel):
     assignee_id: Optional[int] = None
 
 
-class MoveTask(TaskBase):
+class MoveTask(BaseModel):
     column_id: int
     task_position: int
 
