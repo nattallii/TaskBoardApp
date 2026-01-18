@@ -21,7 +21,7 @@ jobs:
 
       - name: Deploy with Helm
         run: |
-          cd TaskBoardApp/k8s-test
+          cd k8s-test
           helm upgrade --install k8s-test . \
             -n taskboard \
             --create-namespace \
