@@ -19,11 +19,10 @@ jobs:
 
 
 
-      - name: Deploy with Helm
+      - name: Deploy Helm chart
         run: |
           cd k8s-test
           helm upgrade --install k8s-test . \
             -n taskboard \
-            --create-namespace \
             --timeout 20m \
-            --atomic
+            --debug
