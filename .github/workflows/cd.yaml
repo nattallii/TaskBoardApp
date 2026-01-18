@@ -1,0 +1,29 @@
+name: Deploy to K3s
+
+on:
+  push:
+    branches:
+      - main
+      - test-deploy
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify cluster
+        run: kubectl get nodes
+
+
+
+      - name: Deploy with Helm
+        run: |
+          cd k8s-test
+          helm upgrade --install k8s-test . \
+            -n taskboard \
+            --create-namespace \
+            --timeout 20m \
+            --atomic
