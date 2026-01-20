@@ -48,3 +48,29 @@ class ColumnService:
         await db.delete(column)
         await db.commit()
         return True
+
+    @staticmethod
+    async def reorder_columns(db: AsyncSession, board_id: int, column_order: list[int]):
+        if not column_order:
+            return False
+
+        result = await db.execute(
+            select(Column).where(Column.board_id == board_id).order_by(Column.position)
+        )
+        existing_columns = result.scalars().all()
+
+        existing_ids = {column.id for column in existing_columns}
+        requested_ids = set(column_order)
+
+        if existing_ids != requested_ids:
+            return False
+
+        id_to_column = {column.id: column for column in existing_columns}
+
+        for position, column_id in enumerate(column_order, start=1):
+            column = id_to_column.get(column_id)
+            if column:
+                column.position = position
+
+        await db.commit()
+        return True

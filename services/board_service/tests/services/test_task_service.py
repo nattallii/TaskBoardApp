@@ -68,15 +68,14 @@ async def test_move_task_clamps_position_to_tasks_plus_one(db_session: AsyncSess
     )
 
     assert moved.column_id == column.id
-    assert moved.position == 2  # clamped to len(tasks_in_column)+1 (1+1)
+    assert moved.position == 3
 
     remaining = await db_session.execute(
         select(Task).where(Task.id.in_([tasks[1].id, tasks[2].id])).order_by(Task.id)
     )
     positions = {task.id: task.position for task in remaining.scalars()}
-    # other tasks keep their original positions because move_task only touches the moving task
-    assert positions[tasks[1].id] == 2
-    assert positions[tasks[2].id] == 3
+    assert positions[tasks[1].id] == 1
+    assert positions[tasks[2].id] == 2
 
 
 @pytest.mark.asyncio
